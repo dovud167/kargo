@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ru" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nozila Cargo</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .custom-scroll::-webkit-scrollbar { display: none; }
+        .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 pb-20 font-sans transition-colors duration-200">
+
+    <!-- Оболочка для ПК и мобильных устройств -->
+    <div class="max-w-md mx-auto min-h-screen bg-white dark:bg-gray-800 shadow-xl relative border-x border-gray-200 dark:border-gray-700">
+
+        <!-- Шапка -->
+        <header class="bg-indigo-600 dark:bg-indigo-700 text-white p-4 sticky top-0 z-40 flex justify-between items-center shadow-sm">
+            <h1 class="text-lg font-bold tracking-wide flex items-center gap-2">
+                <i class="fa-solid fa-box-open"></i> Nozila Cargo
+            </h1>
+            <div id="user-badge" class="text-xs bg-indigo-700 dark:bg-indigo-800 px-3 py-1 rounded-full font-medium">Гость</div>
+        </header>
+
+        <!-- Основной контент -->
+        <main class="p-4">
+
+            <!-- 1. СТРАНИЦА: ГЛАВНАЯ (КАРГО) -->
+            <section id="page-home" class="page space-y-4">
+                <!-- Адрес склада в Китае -->
+                <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
+                    <h2 class="text-sm font-bold mb-2 text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                        <i class="fa-solid fa-warehouse"></i> <span data-lang="warehouse_title">Адрес склада в Китае</span>
+                    </h2>
+                    <div id="admin-editable-address" class="bg-white dark:bg-gray-800 p-3 rounded-xl text-xs leading-relaxed whitespace-pre-line border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-mono">
+Nozilacargo 15669605500 
+浙江省金华市义乌市 福田街道陶界岭小区22幢5单元一楼9号门Nozilacargo (номи Худ ва номери тел)
+                    </div>
+                    <button onclick="copyAddress()" class="mt-3 w-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 font-semibold py-2 rounded-xl text-xs hover:bg-indigo-100 transition flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-copy"></i> <span data-lang="copy_btn">Скопировать адрес</span>
+                    </button>
+                </div>
+
+                <!-- Уведомления о прибывших товарах (Показываются только когда товар пришел) -->
+                <div class="space-y-3">
+                    <h2 class="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        <i class="fa-solid fa-bell text-indigo-600"></i> <span data-lang="notifications_title">Уведомления о прибытии</span>
+                    </h2>
+                    
+                    <div id="sms-notifications-list" class="space-y-3">
+                        <!-- Если уведомлений нет -->
+                        <div id="no-notifications" class="p-6 bg-gray-50 dark:bg-gray-700/30 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 text-center text-gray-400">
+                            <i class="fa-solid fa-inbox text-2xl mb-1 text-gray-300 dark:text-gray-600"></i>
+                            <p class="text-xs">У вас пока нет новых уведомлений о товарах</p>
+                        </div>
+
+                        <!-- Пример уведомления о прибывшем товаре -->
+                        <div id="sample-notification" class="hidden p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-2xl text-xs space-y-2">
+                            <div class="flex justify-between items-start">
+                                <span class="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-box text-amber-600"></i> <span data-lang="item_arrived">Товар прибыл на склад!</span>
+                                </span>
+                                <span class="text-[10px] text-gray-400">Только что</span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-300">Номер телефона: <b id="notif-phone">+992112504410</b></p>
+                            <p class="text-gray-600 dark:text-gray-300">Количество товаров: <b>2 шт.</b> | Стоимость доставки: <b class="text-indigo-600 dark:text-indigo-400">45 сомони</b></p>
+                            <div class="pt-2 flex gap-2">
+                                <button onclick="selectPickup()" class="flex-1 bg-green-600 text-white py-2 rounded-xl text-xs font-semibold shadow-sm hover:bg-green-700 transition" data-lang="pickup_btn">Самовывоз</button>
+                                <button onclick="openDeliveryModal()" class="flex-1 bg-indigo-600 text-white py-2 rounded-xl text-xs font-semibold shadow-sm hover:bg-indigo-700 transition" data-lang="delivery_btn">Доставка (+комиссия)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. СТРАНИЦА: ИСТОРИЯ -->
+            <section id="page-history" class="page hidden space-y-4">
+                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100" data-lang="history_title">История заказов</h2>
+                <div id="orders-list" class="bg-gray-50 dark:bg-gray-700/30 p-8 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 text-center text-gray-400">
+                    <i class="fa-solid fa-clock-rotate-left text-3xl mb-2 text-gray-300 dark:text-gray-600"></i>
+                    <p class="text-xs" data-lang="history_empty">История пока пуста</p>
+                </div>
+            </section>
+
+            <!-- 3. СТРАНИЦА: МАРКЕТ -->
+            <section id="page-market" class="page hidden space-y-4">
+                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100" data-lang="market_title">Маркет товаров</h2>
+                <div class="flex gap-2 overflow-x-auto pb-1 custom-scroll">
+                    <button class="px-3 py-1.5 bg-indigo-600 text-white rounded-full text-xs font-medium whitespace-nowrap">Все</button>
+                    <button class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium whitespace-nowrap">Техника</button>
+                    <button class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium whitespace-nowrap">Аксессуары</button>
+                    <button class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium whitespace-nowrap">Одежда</button>
+                    <button class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium whitespace-nowrap">Обувь</button>
+                    <button class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium whitespace-nowrap">Красота</button>
+                    <button class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium whitespace-nowrap">Дом и сад</button>
+                    <button class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium whitespace-nowrap">Автотовары</button>
+                    <button class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium whitespace-nowrap">Детские товары</button>
+                    <button class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium whitespace-nowrap">Спорт</button>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-gray-50 dark:bg-gray-700/40 p-3 rounded-2xl border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
+                        <div>
+                            <div class="bg-gray-200 dark:bg-gray-600 h-28 rounded-xl mb-2 flex items-center justify-center text-gray-400">
+                                <i class="fa-solid fa-headphones text-2xl"></i>
+                            </div>
+                            <h3 class="font-bold text-xs">Беспроводные наушники</h3>
+                            <p class="text-xs text-indigo-600 dark:text-indigo-400 font-bold mt-1">120 сомони</p>
+                        </div>
+                        <button onclick="placeMarketOrder('Беспроводные наушники', 120)" class="mt-3 w-full bg-indigo-600 text-white py-1.5 rounded-xl text-xs font-medium">Заказать</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. СТРАНИЦА: КАЛЬКУЛЯТОР -->
+            <section id="page-calculator" class="page hidden space-y-4">
+                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100" data-lang="calc_title">Калькулятор доставки</h2>
+                <div class="bg-gray-50 dark:bg-gray-700/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-lang="rate_label">Тариф (сомони за 1 кг)</label>
+                        <input type="number" id="calc-rate" value="25" class="w-full px-3 py-2 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-xl text-xs focus:outline-none focus:border-indigo-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-lang="weight_label">Вес товара (кг)</label>
+                        <input type="number" id="calc-weight" placeholder="0.0" class="w-full px-3 py-2 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-xl text-xs focus:outline-none focus:border-indigo-600" oninput="calculatePrice()">
+                    </div>
+                    <div class="bg-indigo-50 dark:bg-indigo-950/40 p-3 rounded-xl text-center border border-indigo-100 dark:border-indigo-900">
+                        <span class="text-xs text-indigo-600 dark:text-indigo-300 font-medium" data-lang="total_label">Итого стоимость:</span>
+                        <div id="calc-result" class="text-xl font-bold text-indigo-700 dark:text-indigo-400 mt-0.5">0 сомони</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. СТРАНИЦА: ЕЩЁ -->
+            <section id="page-more" class="page hidden space-y-4">
+                
+                <!-- 1. Профиль (Показывается ТОЛЬКО ПОСЛЕ РЕГИСТРАЦИИ) -->
+                <div id="profile-card" class="hidden bg-gray-50 dark:bg-gray-700/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-300 text-xl">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <h3 id="prof-name" class="font-bold text-sm">-</h3>
+                            <p id="prof-phone" class="text-xs text-gray-500 dark:text-gray-400">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Форма Регистрации / Входа (Показывается по умолчанию, пока не залогинен) -->
+                <div id="auth-forms" class="bg-gray-50 dark:bg-gray-700/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 space-y-3">
+                    <h3 class="font-bold text-xs text-gray-700 dark:text-gray-300 flex items-center gap-2"><i class="fa-solid fa-right-to-bracket text-indigo-600"></i> <span id="auth-title">Вход</span></h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="login-mode-btn" onclick="setAuthMode('login')" class="bg-indigo-600 text-white py-2 rounded-xl text-xs font-semibold">Вход</button>
+                        <button id="register-mode-btn" onclick="setAuthMode('register')" class="bg-white dark:bg-gray-800 border dark:border-gray-600 py-2 rounded-xl text-xs font-semibold">Регистрация</button>
+                    </div>
+                    <input type="email" id="auth-email-input" placeholder="Введите email" autocomplete="email" class="w-full px-3 py-2 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-xl text-xs">
+                    <input type="text" id="auth-name-input" placeholder="Ваше имя / никнейм" autocomplete="name" class="hidden w-full px-3 py-2 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-xl text-xs">
+                    <input type="tel" id="auth-phone-input" placeholder="Номер телефона (+992...)" autocomplete="tel" class="hidden w-full px-3 py-2 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-xl text-xs">
+                    <input type="password" id="auth-password-input" placeholder="Пароль (минимум 6 символов)" autocomplete="current-password" class="w-full px-3 py-2 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-xl text-xs">
+                    <button onclick="loginUser()" id="auth-submit-btn" class="w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-semibold hover:bg-indigo-700 transition">Войти по email и паролю</button>
+                    <div class="flex items-center gap-2 text-[10px] text-gray-400"><span class="h-px bg-gray-300 dark:bg-gray-600 flex-1"></span>ИЛИ<span class="h-px bg-gray-300 dark:bg-gray-600 flex-1"></span></div>
+                    <button onclick="loginWithGoogle()" class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2"><i class="fa-brands fa-google text-red-500"></i> Войти через Google</button>
+                </div>
+
+                <!-- Блок Карго -->
+                <div class="space-y-1">
+                    <span class="text-[11px] font-semibold text-gray-400 px-2 uppercase tracking-wider">Карго</span>
+                    <div class="bg-gray-50 dark:bg-gray-700/40 rounded-2xl border border-gray-100 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
+                        
+                        <!-- Запрещенные товары -->
+                        <button onclick="openForbiddenModal()" class="w-full px-4 py-3 text-left text-xs font-medium flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600/30 transition">
+                            <span class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-red-100 dark:bg-red-900/40 text-red-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-ban"></i></span>
+                                <span data-lang="forbidden_btn">Запрещённые товары</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+                        </button>
+
+                        <!-- Контакты -->
+                        <button onclick="openContactsModal()" class="w-full px-4 py-3 text-left text-xs font-medium flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600/30 transition">
+                            <span class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-phone"></i></span>
+                                <span data-lang="contacts_btn">Контакты</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Настройки -->
+                <div class="space-y-1">
+                    <span class="text-[11px] font-semibold text-gray-400 px-2 uppercase tracking-wider">Настройки</span>
+                    <div class="bg-gray-50 dark:bg-gray-700/40 rounded-2xl border border-gray-100 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
+                        
+                        <!-- Язык -->
+                        <button onclick="toggleLanguage()" class="w-full px-4 py-3 text-left text-xs font-medium flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600/30 transition">
+                            <span class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-blue-100 dark:bg-blue-900/40 text-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-globe"></i></span>
+                                <span data-lang="lang_btn">Язык</span>
+                            </span>
+                            <span id="current-lang-text" class="text-gray-400 text-[11px]">Русский <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i></span>
+                        </button>
+
+                        <!-- Тема -->
+                        <button onclick="toggleTheme()" class="w-full px-4 py-3 text-left text-xs font-medium flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600/30 transition">
+                            <span class="flex items-center gap-3">
+                                <span class="w-7 h-7 bg-amber-100 dark:bg-amber-900/40 text-amber-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-moon"></i></span>
+                                <span data-lang="theme_btn">Тема оформления</span>
+                            </span>
+                            <span id="theme-text" class="text-gray-400 text-[11px]">Светлая <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Выход из аккаунта (Показывается только авторизованному) -->
+                <div id="account-block" class="hidden space-y-1">
+                    <span class="text-[11px] font-semibold text-gray-400 px-2 uppercase tracking-wider">Аккаунт</span>
+                    <div class="bg-gray-50 dark:bg-gray-700/40 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                        <button onclick="logoutUser()" class="w-full px-4 py-3 text-left text-xs font-semibold text-red-600 flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-950/20 transition">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span data-lang="logout_btn">Выйти</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Вход в отдельный раздел администратора -->
+                <button id="admin-work-open" onclick="openAdminWork()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-white p-4 rounded-2xl font-bold text-sm shadow-sm text-left items-center justify-between">
+                    <span><i class="fa-solid fa-user-shield mr-2"></i> Работа администратора</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </section>
+
+        </main>
+
+        <!-- Нижнее меню навигации -->
+        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-around py-2 z-40 shadow-lg">
+            <button onclick="switchPage('home')" class="nav-btn flex flex-col items-center text-indigo-600 dark:text-indigo-400" data-target="home">
+                <i class="fa-solid fa-box-archive text-base"></i>
+                <span class="text-[10px] mt-1 font-medium" data-lang="nav_cargo">Карго</span>
+            </button>
+            <button onclick="switchPage('market')" class="nav-btn flex flex-col items-center text-gray-400" data-target="market">
+                <i class="fa-solid fa-store text-base"></i>
+                <span class="text-[10px] mt-1 font-medium" data-lang="nav_market">Маркет</span>
+            </button>
+            <button onclick="switchPage('calculator')" class="nav-btn flex flex-col items-center text-gray-400" data-target="calculator">
+                <i class="fa-solid fa-calculator text-base"></i>
+                <span class="text-[10px] mt-1 font-medium" data-lang="nav_calc">Расчет</span>
+            </button>
+            <button onclick="switchPage('history')" class="nav-btn flex flex-col items-center text-gray-400" data-target="history">
+                <i class="fa-solid fa-clock-rotate-left text-base"></i>
+                <span class="text-[10px] mt-1 font-medium" data-lang="nav_history">История</span>
+            </button>
+            <button onclick="switchPage('more')" class="nav-btn flex flex-col items-center text-gray-400" data-target="more">
+                <i class="fa-solid fa-grip text-base"></i>
+                <span class="text-[10px] mt-1 font-medium" data-lang="nav_more">Ещё</span>
+            </button>
+            <button id="bottom-profile-btn" onclick="openProfileModal()" class="hidden nav-btn flex flex-col items-center text-gray-400" data-target="profile">
+                <i class="fa-solid fa-user-circle text-base"></i>
+                <span class="text-[10px] mt-1 font-medium">Профиль</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- Отдельная страница работы администратора -->
+    <div id="modal-admin-work" class="fixed inset-0 bg-gray-100 dark:bg-gray-900 z-[60] hidden overflow-y-auto">
+      <div class="max-w-md mx-auto min-h-screen bg-white dark:bg-gray-800 p-4 space-y-4">
+        <header class="flex items-center justify-between border-b dark:border-gray-700 pb-3">
+          <h2 class="font-bold text-lg"><i class="fa-solid fa-user-shield text-amber-500 mr-2"></i>Работа администратора</h2>
+          <button onclick="closeAdminWork()" class="p-2 text-gray-500" aria-label="Закрыть"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </header>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="showAdminTab('marketing')" class="bg-indigo-600 text-white p-3 rounded-xl text-xs font-bold"><i class="fa-solid fa-bullhorn block text-lg mb-1"></i>Маркетинг</button>
+          <button onclick="showAdminTab('notifications')" class="bg-indigo-600 text-white p-3 rounded-xl text-xs font-bold"><i class="fa-solid fa-bell block text-lg mb-1"></i>Уведомления</button>
+          <button onclick="showAdminTab('accounts')" class="bg-indigo-600 text-white p-3 rounded-xl text-xs font-bold"><i class="fa-solid fa-users block text-lg mb-1"></i>Аккаунты</button>
+        </div>
+        <section id="admin-tab-marketing" class="space-y-3">
+          <h3 class="font-bold">Маркетинг</h3>
+          <p class="text-xs text-gray-500">Добавляй товар в маркет сайта. Данные сохраняются в Firestore.</p>
+          <input id="admin-product-title" class="w-full p-3 rounded-xl border dark:bg-gray-700 dark:border-gray-600 text-sm" placeholder="Название товара">
+          <input id="admin-product-price" type="number" min="0" step="0.01" class="w-full p-3 rounded-xl border dark:bg-gray-700 dark:border-gray-600 text-sm" placeholder="Цена, сомони">
+          <input id="admin-product-image" type="url" class="w-full p-3 rounded-xl border dark:bg-gray-700 dark:border-gray-600 text-sm" placeholder="Ссылка на фото (необязательно)">
+          <button onclick="adminAddProduct()" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold text-sm">Добавить товар</button>
+          <div class="border-t dark:border-gray-700 pt-3 space-y-2"><h4 class="font-bold text-sm">Адрес склада</h4><textarea id="admin-address-input" rows="3" class="w-full p-3 rounded-xl border dark:bg-gray-700 dark:border-gray-600 text-xs"></textarea><button onclick="saveAdminAddress()" class="bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-bold">Сохранить адрес</button></div>
+        </section>
+        <section id="admin-tab-notifications" class="hidden space-y-3">
+          <h3 class="font-bold">Отправить уведомления</h3>
+          <p class="text-xs text-gray-500">Одна строка на человека. Пример: Довуд4410 5кг. Получатель определяется по имени и последним четырём цифрам телефона.</p>
+          <textarea id="admin-bulk-message" rows="10" placeholder="Текст приветствия...&#10;Довуд4410 5кг" class="w-full p-3 rounded-xl border dark:bg-gray-700 dark:border-gray-600 text-xs"></textarea>
+          <button onclick="sendMatchedNotifications()" class="w-full bg-indigo-600 text-white p-3 rounded-xl text-sm font-bold"><i class="fa-solid fa-paper-plane mr-2"></i>Отправить уведомления</button>
+          <button onclick="simulateArrivedNotification()" class="w-full bg-gray-600 text-white p-3 rounded-xl text-sm">Отправить по UID вручную</button>
+        </section>
+        <section id="admin-tab-accounts" class="hidden space-y-3">
+          <h3 class="font-bold">Аккаунты и активность</h3>
+          <div class="bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl p-4"><div class="text-xs text-gray-500">Всего зарегистрировано аккаунтов</div><div id="admin-account-count" class="text-3xl font-bold text-indigo-600">—</div></div>
+          <button onclick="loadAdminAccounts()" class="w-full border dark:border-gray-600 p-3 rounded-xl text-sm font-bold"><i class="fa-solid fa-rotate mr-2"></i>Обновить статистику</button>
+          <h4 class="font-bold text-sm">Топ-10 покупателей и заказчиков по кг</h4>
+          <p class="text-xs text-gray-500">Рейтинг считает вес из заказов, где сохранено поле kg или weight. Если вес в заказах не записывается, он не сможет попасть в рейтинг.</p>
+          <div id="admin-top-buyers" class="space-y-2 text-sm"><p class="text-gray-400 text-xs">Нажми «Обновить статистику».</p></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Окно профиля пользователя -->
+    <div id="modal-profile" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" onclick="if(event.target===this)closeModal('modal-profile')">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-3xl p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b dark:border-gray-700 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-user-circle text-indigo-600"></i> Мой профиль</h3>
+                <button onclick="closeModal('modal-profile')" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="flex items-center gap-3"><div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 flex items-center justify-center text-xl"><i class="fa-solid fa-user"></i></div><div><div id="modal-prof-name" class="font-bold text-sm">-</div><div id="modal-prof-email" class="text-xs text-gray-500">-</div></div></div>
+            <div class="space-y-2">
+                <label class="block text-xs text-gray-500">Имя</label><input id="profile-edit-name" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl text-xs" placeholder="Имя / никнейм">
+                <label class="block text-xs text-gray-500">Номер телефона</label><input id="profile-edit-phone" type="tel" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl text-xs" placeholder="+992...">
+                <button onclick="saveUserProfile()" class="w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-semibold">Сохранить профиль</button>
+            </div>
+            <button onclick="switchPage('history');closeModal('modal-profile')" class="w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-semibold">Мои заказы</button>
+            <button onclick="logoutUser();closeModal('modal-profile')" class="w-full bg-red-50 dark:bg-red-950/30 text-red-600 py-2 rounded-xl text-xs font-semibold">Выйти из аккаунта</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНЫЕ ОКНА -->
+    <!-- Доставка -->
+    <div id="modal-delivery" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4">
+            <div class="flex justify-between items-center border-b dark:border-gray-700 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-truck text-indigo-600"></i> Выберите адрес доставки
+                </h3>
+                <button onclick="closeModal('modal-delivery')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-gray-500">Комиссия за доставку добавится к заказу.</p>
+            <div class="space-y-2">
+                <button onclick="confirmDelivery('Понгоз')" class="w-full p-3 text-left border dark:border-gray-700 rounded-xl text-xs font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:border-indigo-600 transition flex justify-between items-center">
+                    <span>Понгоз</span> <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+                </button>
+                <button onclick="confirmDelivery('Саро')" class="w-full p-3 text-left border dark:border-gray-700 rounded-xl text-xs font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:border-indigo-600 transition flex justify-between items-center">
+                    <span>Саро</span> <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+                </button>
+                <button onclick="confirmDelivery('Ошуба')" class="w-full p-3 text-left border dark:border-gray-700 rounded-xl text-xs font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:border-indigo-600 transition flex justify-between items-center">
+                    <span>Ошуба</span> <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+                </button>
+                <button onclick="confirmDelivery('Ашт')" class="w-full p-3 text-left border dark:border-gray-700 rounded-xl text-xs font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:border-indigo-600 transition flex justify-between items-center">
+                    <span>Ашт</span> <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Запрещенные товары -->
+    <div id="modal-forbidden" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b dark:border-gray-700 pb-3">
+                <h3 class="font-bold text-sm text-red-600 flex items-center gap-2">
+                    <i class="fa-solid fa-ban"></i> Запрещённые товары
+                </h3>
+                <button onclick="closeModal('modal-forbidden')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="text-xs space-y-2 text-gray-700 dark:text-gray-300 leading-relaxed">
+                <p class="p-2 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 font-medium text-red-700 dark:text-red-400">❌ Лекарственное средство (порошок, таблетки, жидкие лекарства)</p>
+                <p class="p-2 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 font-medium text-red-700 dark:text-red-400">❌ Все виды жидких веществ (парфюм, ароматизаторы и тд)</p>
+                <p class="p-2 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 font-medium text-red-700 dark:text-red-400">❌ Все виды холодного оружия (ножи, электрошокеры , биты и т.д)</p>
+                <p class="p-2 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 font-medium text-red-700 dark:text-red-400">❌ Не принимаем электронные сигареты, кальяны и т.д</p>
+                <p class="p-2 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 font-medium text-red-700 dark:text-red-400">❌ ТОВАРЫ С ПРИЗНАКАМИ 18+</p>
+                <p class="p-2 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 font-medium text-red-700 dark:text-red-400">❌ Смартфон (телефоны)</p>
+                <p class="p-2 bg-red-50 dark:bg-red-950/30 rounded-xl border border-red-100 dark:border-red-900/40 font-medium text-red-700 dark:text-red-400">❌ Повербанк</p>
+            </div>
+            <button onclick="closeModal('modal-forbidden')" class="w-full bg-gray-200 dark:bg-gray-700 py-2 rounded-xl text-xs font-semibold">Понятно</button>
+        </div>
+    </div>
+
+    <!-- Контакты -->
+    <div id="modal-contacts" class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4">
+            <div class="flex justify-between items-center border-b dark:border-gray-700 pb-3">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-headset text-indigo-600"></i> Контакты карго
+                </h3>
+                <button onclick="closeModal('modal-contacts')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3">
+                <a href="tel:+992112504410" class="w-full p-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 rounded-2xl flex items-center gap-3 font-semibold text-xs border border-indigo-100 dark:border-indigo-900">
+                    <i class="fa-solid fa-phone text-base"></i> Позвонить: +992 11 250 4410
+                </a>
+                <a href="https://wa.me/992112504410" target="_blank" class="w-full p-3 bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-300 rounded-2xl flex items-center gap-3 font-semibold text-xs border border-green-100 dark:border-green-900">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Написать в WhatsApp
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase + внутренняя логика сайта -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc, getDocs, setDoc, addDoc, collection, query, where, orderBy, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUwNDWSzr4ePSlsEY8V6F__29zqK7umbI",
+            authDomain: "kargo-da780.firebaseapp.com",
+            projectId: "kargo-da780",
+            storageBucket: "kargo-da780.firebasestorage.app",
+            messagingSenderId: "847581272385",
+            appId: "1:847581272385:web:811d9c31ef6c5c3e4ca9c0",
+            measurementId: "G-2B28MGC0QW"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentLang = 'ru';
+        let isDarkMode = false;
+        let currentUser = null;
+        let stopOrdersListener = null;
+        let stopNotificationsListener = null;
+        let authMode = 'login';
+
+        const translations = {
+            ru: {
+                nav_cargo: "Карго", nav_market: "Маркет", nav_calc: "Расчет", nav_history: "История", nav_more: "Ещё",
+                warehouse_title: "Адрес склада в Китае", copy_btn: "Скопировать адрес", notifications_title: "Уведомления о прибытии", item_arrived: "Товар прибыл на склад!",
+                pickup_btn: "Самовывоз", delivery_btn: "Доставка (+комиссия)", history_title: "История заказов", history_empty: "История пока пуста",
+                market_title: "Маркет товаров", calc_title: "Калькулятор доставки", rate_label: "Тариф (сомони за 1 кг)", weight_label: "Вес товара (кг)", total_label: "Итого стоимость:",
+                forbidden_btn: "Запрещённые товары", contacts_btn: "Контакты", lang_btn: "Язык", theme_btn: "Тема оформления", logout_btn: "Выйти"
+            },
+            tj: {
+                nav_cargo: "Карго", nav_market: "Маркет", nav_calc: "Ҳисоб", nav_history: "Таърих", nav_more: "Иловагӣ",
+                warehouse_title: "Суроғаи анбор дар Чин", copy_btn: "Нусхабардории суроға", notifications_title: "Огоҳиҳо дар бораи расидан", item_arrived: "Мол ба анбор омад!",
+                pickup_btn: "Худам мегирам", delivery_btn: "Расонидан (+комиссия)", history_title: "Таърихи супоришҳо", history_empty: "Таърих ҳоло холӣ аст",
+                market_title: "Маркети молҳо", calc_title: "Ҳисобкунаки интиқол", rate_label: "Тариф (сомонӣ барои 1 кг)", weight_label: "Вазни мол (кг)", total_label: "Ҷамъи нарх:",
+                forbidden_btn: "Молҳои манъшуда", contacts_btn: "Тамосҳо", lang_btn: "Забон", theme_btn: "Мавзӯи тарҳрезӣ", logout_btn: "Баромад"
+            }
+        };
+
+        function friendlyError(error) {
+            const messages = {
+                'auth/email-already-in-use': 'Этот email уже зарегистрирован. Войдите с паролем.',
+                'auth/invalid-credential': 'Неверный email или пароль.',
+                'auth/invalid-email': 'Проверьте адрес электронной почты.',
+                'auth/weak-password': 'Пароль должен содержать не менее 6 символов.',
+                'auth/too-many-requests': 'Слишком много попыток. Попробуйте позже.',
+                'auth/network-request-failed': 'Нет соединения с интернетом.',
+                'permission-denied': 'Firebase запретил действие. Проверьте правила Firestore.'
+            };
+            return messages[error.code] || error.message || 'Не удалось выполнить действие.';
+        }
+        function notify(message) { alert(message); }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            const page = document.getElementById(`page-${pageId}`);
+            if (page) page.classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'dark:text-indigo-400'); btn.classList.add('text-gray-400');
+                if (btn.getAttribute('data-target') === pageId) { btn.classList.remove('text-gray-400'); btn.classList.add('text-indigo-600', 'dark:text-indigo-400'); }
+            });
+            if (pageId === 'history') loadOrders();
+            window.scrollTo(0, 0);
+        }
+        async function copyAddress() {
+            const text = document.getElementById('admin-editable-address').innerText;
+            try { await navigator.clipboard.writeText(text); notify(currentLang === 'ru' ? 'Адрес скопирован!' : 'Суроға нусхабардорӣ шуд!'); }
+            catch { notify('Не удалось скопировать адрес. Выделите и скопируйте его вручную.'); }
+        }
+        function calculatePrice() {
+            const rate = parseFloat(document.getElementById('calc-rate').value) || 0;
+            const weight = parseFloat(document.getElementById('calc-weight').value) || 0;
+            document.getElementById('calc-result').innerText = (rate * weight).toFixed(2) + ' сомони';
+        }
+        function openDeliveryModal() { document.getElementById('modal-delivery').classList.remove('hidden'); }
+        function openForbiddenModal() { document.getElementById('modal-forbidden').classList.remove('hidden'); }
+        function openContactsModal() { document.getElementById('modal-contacts').classList.remove('hidden'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+        async function confirmDelivery(location) {
+            closeModal('modal-delivery');
+            if (!currentUser) { notify('Сначала войдите в аккаунт.'); switchPage('more'); return; }
+            try { await addDoc(collection(db, 'orders'), { uid: currentUser.uid, email: currentUser.email, type: 'delivery', title: 'Доставка в ' + location, location, status: 'Принят', createdAt: serverTimestamp() }); notify(`Заявка на доставку в ${location} сохранена.`); }
+            catch (e) { notify('Не удалось сохранить заявку: ' + friendlyError(e)); }
+        }
+        async function selectPickup() {
+            if (!currentUser) { notify('Сначала войдите в аккаунт.'); switchPage('more'); return; }
+            try { await addDoc(collection(db, 'orders'), { uid: currentUser.uid, email: currentUser.email, type: 'pickup', title: 'Самовывоз со склада', status: 'Принят', createdAt: serverTimestamp() }); notify('Заявка на самовывоз сохранена.'); }
+            catch (e) { notify('Не удалось сохранить заявку: ' + friendlyError(e)); }
+        }
+        function toggleTheme() {
+            isDarkMode = !isDarkMode; const html = document.getElementById('html-root');
+            if (isDarkMode) { html.classList.add('dark'); document.getElementById('theme-text').innerHTML = 'Темная <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>'; }
+            else { html.classList.remove('dark'); document.getElementById('theme-text').innerHTML = 'Светлая <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>'; }
+        }
+        function toggleLanguage() {
+            currentLang = currentLang === 'ru' ? 'tj' : 'ru';
+            document.getElementById('current-lang-text').innerHTML = (currentLang === 'ru' ? 'Русский' : 'Тоҷикӣ') + ' <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>';
+            document.querySelectorAll('[data-lang]').forEach(el => { const key = el.getAttribute('data-lang'); if (translations[currentLang][key]) el.innerText = translations[currentLang][key]; });
+        }
+        function setAuthMode(mode) {
+            authMode = mode;
+            const registering = mode === 'register';
+            document.getElementById('auth-title').innerText = registering ? 'Регистрация' : 'Вход';
+            document.getElementById('auth-submit-btn').innerText = registering ? 'Зарегистрироваться' : 'Войти по email и паролю';
+            document.getElementById('auth-name-input').classList.toggle('hidden', !registering);
+            document.getElementById('auth-phone-input').classList.toggle('hidden', !registering);
+            document.getElementById('auth-name-input').required = registering;
+            document.getElementById('auth-phone-input').required = registering;
+            document.getElementById('login-mode-btn').className = registering ? 'bg-white dark:bg-gray-800 border dark:border-gray-600 py-2 rounded-xl text-xs font-semibold' : 'bg-indigo-600 text-white py-2 rounded-xl text-xs font-semibold';
+            document.getElementById('register-mode-btn').className = registering ? 'bg-indigo-600 text-white py-2 rounded-xl text-xs font-semibold' : 'bg-white dark:bg-gray-800 border dark:border-gray-600 py-2 rounded-xl text-xs font-semibold';
+            document.getElementById('auth-password-input').autocomplete = registering ? 'new-password' : 'current-password';
+        }
+        async function loginUser() {
+            const email = document.getElementById('auth-email-input').value.trim();
+            const name = document.getElementById('auth-name-input').value.trim();
+            const phone = document.getElementById('auth-phone-input').value.trim();
+            const password = document.getElementById('auth-password-input').value;
+            if (!email || !password) { notify('Введите email и пароль.'); return; }
+            if (authMode === 'register') {
+                if (!name || !phone) { notify('Для регистрации заполните имя и номер телефона.'); return; }
+                if (password.length < 6) { notify('Пароль должен содержать не менее 6 символов.'); return; }
+                try {
+                    const credential = await createUserWithEmailAndPassword(auth, email, password);
+                    await updateProfile(credential.user, { displayName: name });
+                    await setDoc(doc(db, 'users', credential.user.uid), { uid: credential.user.uid, email, name, phone, createdAt: serverTimestamp() }, { merge: true });
+                    notify('Регистрация завершена.');
+                } catch (e) { notify('Ошибка регистрации: ' + friendlyError(e)); }
+                return;
+            }
+            try { await signInWithEmailAndPassword(auth, email, password); notify('Вход выполнен.'); }
+            catch (e) { notify('Ошибка входа: ' + friendlyError(e)); }
+        }
+        async function loginWithGoogle() {
+            try {
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                const profileRef = doc(db, 'users', user.uid);
+                const snap = await getDoc(profileRef);
+                if (!snap.exists()) await setDoc(profileRef, { uid: user.uid, email: user.email || '', name: user.displayName || '', phone: user.phoneNumber || '', createdAt: serverTimestamp(), provider: 'google' }, { merge: true });
+                notify('Вход через Google выполнен.');
+            } catch (e) { notify('Не удалось войти через Google: ' + friendlyError(e)); }
+        }
+        function openProfileModal() {
+            if (!currentUser) { notify('Сначала войдите в аккаунт.'); switchPage('more'); return; }
+            document.getElementById('modal-prof-name').innerText = currentUser.name || 'Пользователь';
+            document.getElementById('modal-prof-email').innerText = currentUser.email || 'Google';
+            document.getElementById('profile-edit-name').value = currentUser.name || '';
+            document.getElementById('profile-edit-phone').value = currentUser.phone || '';
+            const modal = document.getElementById('modal-profile'); modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+        async function saveUserProfile() {
+            if (!currentUser) { notify('Сначала войдите в аккаунт.'); return; }
+            const name = document.getElementById('profile-edit-name').value.trim();
+            const phone = document.getElementById('profile-edit-phone').value.trim();
+            if (!name || !phone) { notify('Заполните имя и номер телефона.'); return; }
+            try {
+                await setDoc(doc(db, 'users', currentUser.uid), { uid: currentUser.uid, email: currentUser.email || '', name, phone, updatedAt: serverTimestamp() }, { merge: true });
+                if (auth.currentUser && auth.currentUser.displayName !== name) await updateProfile(auth.currentUser, { displayName: name });
+                currentUser = { ...currentUser, name, phone };
+                document.getElementById('prof-name').innerText = name;
+                document.getElementById('prof-phone').innerText = phone;
+                document.getElementById('user-badge').innerText = name;
+                document.getElementById('modal-prof-name').innerText = name;
+                notify('Профиль сохранён.');
+            } catch (e) { notify('Не удалось сохранить профиль: ' + friendlyError(e)); }
+        }
+        async function logoutUser() { try { await signOut(auth); } catch (e) { notify('Ошибка выхода: ' + friendlyError(e)); } }
+        async function updateUserState(user) {
+            currentUser = user;
+            if (user) {
+                let profile = {};
+                try { const snap = await getDoc(doc(db, 'users', user.uid)); if (snap.exists()) profile = snap.data(); } catch (e) { console.warn('Profile load:', e); }
+                currentUser = { uid: user.uid, email: user.email, name: profile.name || user.displayName || user.email, phone: profile.phone || '' };
+                document.getElementById('profile-card').classList.remove('hidden');
+                document.getElementById('bottom-profile-btn').classList.remove('hidden');
+                document.getElementById('auth-forms').classList.add('hidden');
+                document.getElementById('account-block').classList.remove('hidden');
+                document.getElementById('prof-name').innerText = currentUser.name;
+                document.getElementById('prof-phone').innerText = currentUser.phone || 'Номер не указан';
+                document.getElementById('modal-prof-name').innerText = currentUser.name;
+                document.getElementById('modal-prof-email').innerText = currentUser.email || '';
+                    document.getElementById('user-badge').innerText = currentUser.name;
+                document.getElementById('notif-phone').innerText = currentUser.phone || 'Номер не указан';
+                const isAdmin = user.email === 'dovud0300@gmail.com';
+                document.getElementById('admin-work-open').classList.toggle('hidden', !isAdmin);
+                document.getElementById('admin-work-open').classList.toggle('flex', isAdmin);
+                if (isAdmin) {
+                    try { const snap = await getDoc(doc(db, 'settings', 'cargo')); if (snap.exists() && snap.data().warehouseAddress) document.getElementById('admin-editable-address').innerText = snap.data().warehouseAddress; }
+                    catch (e) { console.warn('Admin settings:', e); }
+                    document.getElementById('admin-address-input').value = document.getElementById('admin-editable-address').innerText.trim();
+                }
+                loadOrders(); listenNotifications();
+            } else {
+                document.getElementById('profile-card').classList.add('hidden');
+                document.getElementById('bottom-profile-btn').classList.add('hidden');
+                document.getElementById('auth-forms').classList.remove('hidden');
+                document.getElementById('account-block').classList.add('hidden');
+                document.getElementById('admin-work-open').classList.add('hidden');
+                closeAdminWork();
+                document.getElementById('user-badge').innerText = 'Гость';
+                if (stopOrdersListener) stopOrdersListener(); if (stopNotificationsListener) stopNotificationsListener();
+                stopOrdersListener = null; stopNotificationsListener = null;
+                renderOrders([]);
+                document.getElementById('no-notifications').classList.remove('hidden');
+                document.getElementById('sample-notification').classList.add('hidden');
+            }
+        }
+        function openAdminWork() {
+            if (!currentUser || currentUser.email !== 'dovud0300@gmail.com') { notify('Нет прав администратора.'); return; }
+            document.getElementById('modal-admin-work').classList.remove('hidden');
+            document.getElementById('admin-address-input').value = document.getElementById('admin-editable-address').innerText.trim();
+            showAdminTab('marketing');
+        }
+        function closeAdminWork() { document.getElementById('modal-admin-work').classList.add('hidden'); }
+        function showAdminTab(tab) {
+            if (!currentUser || currentUser.email !== 'dovud0300@gmail.com') { notify('Нет прав администратора.'); return; }
+            ['marketing','notifications','accounts'].forEach(t => document.getElementById('admin-tab-' + t).classList.toggle('hidden', t !== tab));
+            if (tab === 'accounts') loadAdminAccounts();
+        }
+        async function adminAddProduct() {
+            if (!currentUser || currentUser.email !== 'dovud0300@gmail.com') { notify('Нет прав администратора.'); return; }
+            const title = document.getElementById('admin-product-title').value.trim();
+            const price = Number(document.getElementById('admin-product-price').value);
+            const image = document.getElementById('admin-product-image').value.trim();
+            if (!title || !Number.isFinite(price) || price < 0) { notify('Укажи название товара и правильную цену.'); return; }
+            try {
+                await addDoc(collection(db, 'products'), { title, price, image: image || '', active: true, createdAt: serverTimestamp(), createdBy: currentUser.uid });
+                document.getElementById('admin-product-title').value = '';
+                document.getElementById('admin-product-price').value = '';
+                document.getElementById('admin-product-image').value = '';
+                notify('Товар сохранён в базе. Для показа в маркете нужно читать коллекцию products при загрузке маркета.');
+            } catch (e) { notify('Не удалось добавить товар: ' + friendlyError(e)); }
+        }
+        async function loadAdminAccounts() {
+            if (!currentUser || currentUser.email !== 'dovud0300@gmail.com') { notify('Нет прав администратора.'); return; }
+            const countEl = document.getElementById('admin-account-count');
+            const topEl = document.getElementById('admin-top-buyers');
+            countEl.innerText = '…'; topEl.innerHTML = '<p class="text-gray-400 text-xs">Загрузка…</p>';
+            try {
+                const [usersSnap, ordersSnap] = await Promise.all([getDocs(collection(db, 'users')), getDocs(collection(db, 'orders'))]);
+                countEl.innerText = String(usersSnap.size);
+                const users = new Map(usersSnap.docs.map(d => [d.id, d.data()]));
+                const totals = new Map();
+                ordersSnap.docs.forEach(d => {
+                    const o = d.data(); const kg = Number(o.kg ?? o.weight ?? o.weightKg ?? 0);
+                    if (!o.uid || !Number.isFinite(kg) || kg <= 0) return;
+                    const u = users.get(o.uid) || {};
+                    const entry = totals.get(o.uid) || { name: u.name || o.name || o.email || 'Пользователь', phone: u.phone || '', kg: 0, orders: 0 };
+                    entry.kg += kg; entry.orders += 1; totals.set(o.uid, entry);
+                });
+                const top = [...totals.values()].sort((a,b) => b.kg-a.kg).slice(0,10);
+                topEl.innerHTML = top.length ? top.map((u,i) => `<div class="flex justify-between gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/40"><div><b>${i+1}. ${escapeHtml(u.name)}</b><div class="text-xs text-gray-500">${escapeHtml(u.phone || 'Телефон не указан')} · ${u.orders} заказ(ов)</div></div><b class="whitespace-nowrap">${u.kg.toFixed(2)} кг</b></div>`).join('') : '<p class="text-gray-400 text-xs">Пока нет заказов с указанным весом.</p>';
+            } catch (e) { countEl.innerText = 'Ошибка'; topEl.innerHTML = '<p class="text-red-500 text-xs">Не удалось загрузить статистику: ' + escapeHtml(friendlyError(e)) + '</p>'; }
+        }
+
+        async function saveAdminAddress() {
+            if (!currentUser || currentUser.email !== 'dovud0300@gmail.com') { notify('Нет прав администратора.'); return; }
+            const text = document.getElementById('admin-address-input').value.trim();
+            if (!text) { notify('Адрес не может быть пустым.'); return; }
+            try { await setDoc(doc(db, 'settings', 'cargo'), { warehouseAddress: text, updatedAt: serverTimestamp(), updatedBy: currentUser.uid }, { merge: true }); document.getElementById('admin-editable-address').innerText = text; notify('Адрес склада сохранён в Firebase.'); }
+            catch (e) { notify('Не удалось сохранить адрес: ' + friendlyError(e)); }
+        }
+        function normalizePersonName(value) { return String(value || '').toLowerCase().replace(/[^\p{L}]/gu, ''); }
+        async function sendMatchedNotifications() {
+            if (!currentUser || currentUser.email !== 'dovud0300@gmail.com') { notify('Нет прав администратора.'); return; }
+            const raw = document.getElementById('admin-bulk-message').value.trim();
+            if (!raw) { notify('Вставьте текст с именами и последними 4 цифрами номера.'); return; }
+            try {
+                const usersSnap = await getDocs(collection(db, 'users'));
+                const users = usersSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
+                const lines = raw.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+                let sent = 0, unmatched = [];
+                for (const line of lines) {
+                    const match = line.match(/^(.+?)\s*([0-9]{4})(?:\s+(.+))?$/u);
+                    if (!match) continue;
+                    const wantedName = normalizePersonName(match[1]);
+                    const last4 = match[2];
+                    const payload = (match[3] || '').trim();
+                    const target = users.find(u => normalizePersonName(u.name || u.displayName) === wantedName && String(u.phone || '').replace(/\D/g, '').slice(-4) === last4);
+                    if (!target) { unmatched.push(line); continue; }
+                    const weightMatch = payload.match(/(\d+(?:[.,]\d+)?)\s*(кг|kg|кило(?:грамм(?:а|ов)?)?)/i);
+                    const message = weightMatch ? `Товар прибыл на склад. Вес: ${weightMatch[1].replace(',', '.')} кг. Строка администратора: ${line}` : `Сообщение администратора: ${line}`;
+                    await addDoc(collection(db, 'notifications'), { uid: target.uid, title: weightMatch ? 'Товар прибыл на склад!' : 'Сообщение от администратора', message, originalLine: line, weightKg: weightMatch ? Number(weightMatch[1].replace(',', '.')) : null, createdAt: serverTimestamp(), read: false, createdBy: currentUser.uid });
+                    sent++;
+                }
+                notify(`Отправлено: ${sent}. Не найдено совпадений: ${unmatched.length}. Для совпадения имя и последние 4 цифры телефона должны совпасть с профилем.`);
+            } catch (e) { notify('Не удалось отправить сообщения: ' + friendlyError(e)); }
+        }
+        async function simulateArrivedNotification() {
+            if (!currentUser || currentUser.email !== 'dovud0300@gmail.com') { notify('Нет прав администратора.'); return; }
+            try {
+                // Клиентская версия не имеет права искать пользователей через Admin SDK.
+                const targetUid = prompt('Введите UID пользователя из Firebase Authentication:');
+                if (!targetUid) return;
+                await addDoc(collection(db, 'notifications'), { uid: targetUid.trim(), title: 'Товар прибыл на склад!', message: 'Ваш товар прибыл на склад. Свяжитесь с Nozila Cargo для получения.', createdAt: serverTimestamp(), read: false, createdBy: currentUser.uid });
+                notify('Уведомление сохранено. Оно появится у пользователя, когда он откроет сайт. Для push-уведомлений нужен серверный Firebase Cloud Messaging.');
+            } catch (e) { notify('Не удалось отправить уведомление: ' + friendlyError(e)); }
+        }
+        async function placeMarketOrder(title, price) {
+            if (!currentUser) { notify('Чтобы заказать товар, войдите или зарегистрируйтесь.'); switchPage('more'); return; }
+            try { await addDoc(collection(db, 'orders'), { uid: currentUser.uid, email: currentUser.email, type: 'market', title, price, currency: 'TJS', status: 'Принят', createdAt: serverTimestamp() }); notify('Заказ сохранён в Firebase.'); }
+            catch (e) { notify('Не удалось оформить заказ: ' + friendlyError(e)); }
+        }
+        function renderOrders(items) {
+            const list = document.getElementById('orders-list'); if (!list) return;
+            if (!items.length) { list.className = 'bg-gray-50 dark:bg-gray-700/30 p-8 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 text-center text-gray-400'; list.innerHTML = '<i class="fa-solid fa-clock-rotate-left text-3xl mb-2 text-gray-300 dark:text-gray-600"></i><p class="text-xs">' + translations[currentLang].history_empty + '</p>'; return; }
+            list.className = 'space-y-3';
+            list.innerHTML = items.map(item => `<article class="p-3 rounded-xl bg-gray-50 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-700 text-left"><div class="font-bold text-sm">${escapeHtml(item.title || 'Заказ')}</div><div class="text-xs text-gray-500 mt-1">Статус: ${escapeHtml(item.status || 'Принят')}</div>${item.price ? `<div class="text-xs text-indigo-600 mt-1">${Number(item.price).toFixed(2)} сомони</div>` : ''}</article>`).join('');
+        }
+        function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+        function loadOrders() {
+            if (!currentUser) { renderOrders([]); return; }
+            if (stopOrdersListener) stopOrdersListener();
+            const q = query(collection(db, 'orders'), where('uid', '==', currentUser.uid));
+            stopOrdersListener = onSnapshot(q, snapshot => {
+                const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                items.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)); renderOrders(items);
+            }, error => { console.error(error); notify('Не удалось загрузить историю заказов: ' + friendlyError(error)); });
+        }
+        function listenNotifications() {
+            if (!currentUser) return;
+            if (stopNotificationsListener) stopNotificationsListener();
+            const q = query(collection(db, 'notifications'), where('uid', '==', currentUser.uid));
+            stopNotificationsListener = onSnapshot(q, snapshot => {
+                const docs = snapshot.docs;
+                if (!docs.length) { document.getElementById('no-notifications').classList.remove('hidden'); document.getElementById('sample-notification').classList.add('hidden'); return; }
+                document.getElementById('no-notifications').classList.add('hidden');
+                const latest = docs[docs.length - 1].data();
+                document.getElementById('sample-notification').classList.remove('hidden');
+                document.getElementById('sample-notification').querySelector('[data-lang="item_arrived"]').innerText = latest.title || 'Товар прибыл на склад!';
+                document.getElementById('sample-notification').querySelector('p').innerText = latest.message || 'Ваш товар прибыл на склад.';
+                document.getElementById('sample-notification').querySelectorAll('button').forEach(b => b.classList.add('hidden'));
+            }, error => console.warn('Notifications:', error));
+        }
+        Object.assign(window, { switchPage, copyAddress, calculatePrice, openDeliveryModal, openForbiddenModal, openContactsModal, closeModal, confirmDelivery, selectPickup, toggleTheme, toggleLanguage, setAuthMode, loginUser, loginWithGoogle, openProfileModal, saveUserProfile, logoutUser, saveAdminAddress, sendMatchedNotifications, simulateArrivedNotification, placeMarketOrder, openAdminWork, closeAdminWork, showAdminTab, adminAddProduct, loadAdminAccounts });
+        onAuthStateChanged(auth, user => { updateUserState(user); });
+    </script>
+</body>
+</html>
